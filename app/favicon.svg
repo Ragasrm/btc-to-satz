@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bitcoin symbol background circle -->
+  <circle cx="16" cy="16" r="15" fill="#F7931A" stroke="#FFA500" stroke-width="2"/>
+  
+  <!-- Bitcoin symbol "B" -->
+  <path d="M12 8h6c2.2 0 4 1.8 4 4s-1.8 4-4 4h-2v8h-4V8zm2 6h4c1.1 0 2-.9 2-2s-.9-2-2-2h-4v4zm0 6h4c1.1 0 2-.9 2-2s-.9-2-2-2h-4v4z" fill="white"/>
+  
+  <!-- Small accent dots -->
+  <circle cx="8" cy="8" r="1.5" fill="#FFD700"/>
+  <circle cx="24" cy="8" r="1.5" fill="#FFD700"/>
+  <circle cx="8" cy="24" r="1.5" fill="#FFD700"/>
+  <circle cx="24" cy="24" r="1.5" fill="#FFD700"/>
+</svg>
