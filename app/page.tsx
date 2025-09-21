@@ -51,14 +51,17 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center text-white py-8">
-      <BTCPrice />
       
-      {/* Additional Sections */}
       <SatoshiCalculator 
         currentPrice={currentPrice}
         calculateSatValue={calculateSatValue}
         calculateSatsForAmount={calculateSatsForAmount}
       />
+
+      <BTCPrice />
+      
+      {/* Additional Sections */}
+   
       
       <DailyLifeImpact 
         currentPrice={currentPrice}
