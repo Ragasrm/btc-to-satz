@@ -1,83 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import InfoCard from "@/components/shared/InfoCard";
-import DisclaimerCard from "@/components/shared/DisclaimerCard";
-import ProfessionalDisclaimer from "@/components/shared/ProfessionalDisclaimer";
-
-type MarketData = {
-  market: string;
-  volumeEx: number;
-  volumeQt: number;
-  pricechange: string;
-  quickTradePrice: string;
-  pair: string;
-  virtualCurrency: string;
-  currency: string;
-  volume: number;
-  quickTradePriceChange: string;
-  buy?: string;
-  sell?: string;
-  "24hoursHigh"?: string;
-  "24hoursLow"?: string;
-};
+import { useBitcoinData } from "@/components/shared/BitcoinDataProvider";
 
 export default function BTCPrice() {
-  const [btcData, setBtcData] = useState<MarketData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    currentPrice, 
+    highestPrice, 
+    lowPrice, 
+    priceChange,
+    calculateSats
+  } = useBitcoinData();
 
-  useEffect(() => {
-    const fetchBTCData = async () => {
-      try {
-        const response = await fetch("https://www.zebapi.com/api/v1/market");
-        if (!response.ok) {
-          throw new Error("Failed to fetch market data");
-        }
-        const data: MarketData[] = await response.json();
-        
-        // Find BTC-INR pair
-        const btcInrData = data.find(item => item.pair === "BTC-INR");
-        setBtcData(btcInrData || null);
-        setError(btcInrData ? null : "BTC-INR data not found");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBTCData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="mt-8 p-4 bg-gray-800 rounded-lg">
-        <p className="text-gray-300">Loading BTC price...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mt-8 p-4 bg-red-900 rounded-lg">
-        <p className="text-red-300">Error: {error}</p>
-      </div>
-    );
-  }
-
-  if (!btcData) {
-    return (
-      <div className="mt-8 p-4 bg-gray-800 rounded-lg">
-        <p className="text-gray-300">No BTC-INR data available</p>
-      </div>
-    );
-  }
-
-  const highestPrice = btcData["24hoursHigh"] || btcData.market;
-  const currentPrice = btcData.market;
-  const priceChange = parseFloat(btcData.pricechange);
-  const lowPrice = btcData["24hoursLow"];
 
   // Convert numbers to simple, understandable words
   const formatPriceInWords = (price: number) => {
@@ -91,23 +25,6 @@ export default function BTCPrice() {
     return price.toFixed(0);
   };
 
-  // Calculate sats equivalent
-  const calculateSats = (priceInRupees: number) => {
-    const satsPerRupee = 100000000 / priceInRupees; // 1 BTC = 100,000,000 sats
-    return Math.round(satsPerRupee);
-  };
-
-  // Calculate 1 Sat value in rupees
-  const calculateSatValue = (priceInRupees: number) => {
-    const satValue = priceInRupees / 100000000; // 1 BTC = 100,000,000 sats
-    return satValue;
-  };
-
-  // Calculate sats for different rupee amounts
-  const calculateSatsForAmount = (priceInRupees: number, rupeeAmount: number) => {
-    const satsPerRupee = 100000000 / priceInRupees;
-    return Math.round(satsPerRupee * rupeeAmount);
-  };
 
   const getPriceChangeDescription = (change: number) => {
     if (change > 0) {
@@ -218,196 +135,6 @@ export default function BTCPrice() {
         )}
       </div>
 
-      {/* Dynamic Satoshi Calculator */}
-      <div className="bg-gradient-to-br from-purple-900/30 to-indigo-900/30 p-4 sm:p-6 lg:p-8 rounded-xl border border-purple-500/50 mb-8">
-        <h3 className="text-xl sm:text-2xl lg:text-3xl text-purple-400 font-bold mb-4 lg:mb-6 text-center">🪙 Dynamic Satoshi Calculator</h3>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <InfoCard
-            title="1 Sat Value"
-            value={`₹${calculateSatValue(parseFloat(currentPrice)).toFixed(6)}`}
-            description="Current value of 1 Satoshi"
-            icon="🪙"
-            bgColor="bg-purple-800/50"
-            textColor="text-purple-300"
-            borderColor="border-purple-500/30"
-            valueColor="text-purple-200"
-          />
-
-          <InfoCard
-            title="For ₹1"
-            value={`${calculateSatsForAmount(parseFloat(currentPrice), 1).toLocaleString()} Sats`}
-            description="Sats you can buy with ₹1"
-            icon="💰"
-            bgColor="bg-indigo-800/50"
-            textColor="text-indigo-300"
-            borderColor="border-indigo-500/30"
-            valueColor="text-indigo-200"
-          />
-
-          <InfoCard
-            title="For ₹10"
-            value={`${calculateSatsForAmount(parseFloat(currentPrice), 10).toLocaleString()} Sats`}
-            description="Sats you can buy with ₹10"
-            icon="💵"
-            bgColor="bg-blue-800/50"
-            textColor="text-blue-300"
-            borderColor="border-blue-500/30"
-            valueColor="text-blue-200"
-          />
-
-          <InfoCard
-            title="For ₹100"
-            value={`${calculateSatsForAmount(parseFloat(currentPrice), 100).toLocaleString()} Sats`}
-            description="Sats you can buy with ₹100"
-            icon="💸"
-            bgColor="bg-cyan-800/50"
-            textColor="text-cyan-300"
-            borderColor="border-cyan-500/30"
-            valueColor="text-cyan-200"
-          />
-        </div>
-
-        {/* Comparison with old rate */}
-        <div className="mt-6 bg-gray-800/50 p-4 rounded-lg">
-          <div className="text-center">
-            <p className="text-gray-300 mb-2">
-              <strong>Price Comparison:</strong>
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-orange-900/30 p-3 rounded">
-                <p className="text-orange-300">
-                  <strong>Old Rate:</strong> 1 Sat = ₹0.032
-                </p>
-                <p className="text-orange-200 text-sm">
-                  ₹1 = {Math.round(1/0.032).toLocaleString()} Sats
-                </p>
-              </div>
-              <div className="bg-green-900/30 p-3 rounded">
-                <p className="text-green-300">
-                  <strong>Current Rate:</strong> 1 Sat = ₹{calculateSatValue(parseFloat(currentPrice)).toFixed(6)}
-                </p>
-                <p className="text-green-200 text-sm">
-                  ₹1 = {calculateSatsForAmount(parseFloat(currentPrice), 1).toLocaleString()} Sats
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Daily Life Impact - Food Prices in Sats */}
-      <div className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 p-4 sm:p-6 lg:p-8 rounded-xl border border-yellow-500/50 mb-8">
-        <h3 className="text-xl sm:text-2xl lg:text-3xl text-yellow-400 font-bold mb-4 lg:mb-6 text-center">🍽️ Daily Life Impact - Food Prices in Sats</h3>
-        <p className="text-yellow-300 text-center text-sm sm:text-base mb-6">
-          See how Bitcoin Sats compare to your everyday food expenses
-        </p>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
-          <InfoCard
-            title="Chai (Tea)"
-            value={`${calculateSatsForAmount(parseFloat(currentPrice), 15).toLocaleString()} Sats`}
-            description="₹15 = One cup of chai"
-            icon="☕"
-            bgColor="bg-gradient-to-br from-amber-800/50 to-yellow-800/50"
-            textColor="text-amber-300"
-            borderColor="border-amber-500/50"
-            valueColor="text-amber-200"
-          />
-
-          <InfoCard
-            title="Dosa"
-            value={`${calculateSatsForAmount(parseFloat(currentPrice), 50).toLocaleString()} Sats`}
-            description="₹50 = One crispy dosa"
-            icon="🥞"
-            bgColor="bg-gradient-to-br from-orange-800/50 to-red-800/50"
-            textColor="text-orange-300"
-            borderColor="border-orange-500/50"
-            valueColor="text-orange-200"
-          />
-
-          <InfoCard
-            title="Biryani"
-            value={`${calculateSatsForAmount(parseFloat(currentPrice), 200).toLocaleString()} Sats`}
-            description="₹200 = One plate of biryani"
-            icon="🍛"
-            bgColor="bg-gradient-to-br from-red-800/50 to-pink-800/50"
-            textColor="text-red-300"
-            borderColor="border-red-500/50"
-            valueColor="text-red-200"
-          />
-        </div>
-
-        {/* Fun Fact */}
-        <div className="mt-6 bg-gradient-to-r from-yellow-800/30 to-orange-800/30 p-4 rounded-lg border border-yellow-500/30">
-          <div className="text-center">
-            <h4 className="text-yellow-300 font-semibold mb-2 flex items-center justify-center">
-              <span className="text-yellow-400 mr-2">💡</span>
-              Fun Fact
-            </h4>
-            <p className="text-yellow-200 text-sm sm:text-base">
-              Instead of spending ₹265 on chai + dosa + biryani, you could buy{' '}
-              <strong className="text-yellow-300">
-                {(calculateSatsForAmount(parseFloat(currentPrice), 15) + 
-                  calculateSatsForAmount(parseFloat(currentPrice), 50) + 
-                  calculateSatsForAmount(parseFloat(currentPrice), 200)).toLocaleString()} Sats
-              </strong>{' '}
-              and potentially grow your wealth over time! 🚀
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Educational Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Why Stack Sats */}
-        <div className="bg-gradient-to-br from-orange-900/30 to-yellow-900/30 p-6 rounded-xl border border-orange-500/50">
-          <h3 className="text-2xl text-orange-400 font-bold mb-4">🚀 Why Stack Sats?</h3>
-          <p className="text-orange-300 mb-4 text-lg">
-            <strong>Don&apos;t buy whole Bitcoin - buy Sats instead!</strong>
-          </p>
-          <ul className="text-orange-300 space-y-3">
-            <li className="flex items-center">
-              <span className="text-orange-400 mr-3">•</span>
-              Start with just ₹10-₹100
-            </li>
-            <li className="flex items-center">
-              <span className="text-orange-400 mr-3">•</span>
-              Buy regularly (daily/weekly)
-            </li>
-            <li className="flex items-center">
-              <span className="text-orange-400 mr-3">•</span>
-              Build wealth over time
-            </li>
-            <li className="flex items-center">
-              <span className="text-orange-400 mr-3">•</span>
-              No need to wait for Bitcoin to drop
-            </li>
-          </ul>
-        </div>
-
-        {/* Simple Summary */}
-        <div className="bg-gradient-to-br from-gray-800 to-gray-700 p-6 rounded-xl border border-gray-600/50">
-          <h3 className="text-2xl text-white font-bold mb-4">💡 Simple Takeaway</h3>
-          <div className="bg-gray-700/50 p-4 rounded-lg mb-4">
-            <p className="text-gray-300 text-center text-lg">
-              Bitcoin costs ₹{parseFloat(currentPrice).toLocaleString()} today
-            </p>
-          </div>
-          <div className="bg-orange-900/30 p-4 rounded-lg text-center">
-            <p className="text-orange-200 mb-2">
-              Instead of buying 1 Bitcoin, buy
-            </p>
-            <p className="text-2xl font-bold text-orange-300 mb-2">
-              {calculateSats(parseFloat(currentPrice)).toLocaleString()} Sats
-            </p>
-            <p className="text-orange-200">
-              with ₹1 and start your journey!
-            </p>
-          </div>
-        </div>
-      </div>
-      <ProfessionalDisclaimer />
     </div>
   );
 }

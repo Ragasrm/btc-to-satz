@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
+import { BitcoinDataProvider } from "@/components/shared/BitcoinDataProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,13 +35,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex flex-col h-screen">
-          <Header headline="Stack Sats, Not BTC" />
-          <main className="flex-1 overflow-y-auto bg-gray-900">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <BitcoinDataProvider>
+          <div className="flex flex-col h-screen">
+            <Header headline="Stack Sats, Not BTC" />
+            <main className="flex-1 overflow-y-auto bg-gray-900">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </BitcoinDataProvider>
       </body>
     </html>
   );
